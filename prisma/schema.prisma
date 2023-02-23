@@ -1,0 +1,157 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  hash        String
+  hashedRt    String?
+  email       String        @unique
+  name        String
+  role        Role          @default(USER)
+
+  learnGoal Int @default(50)
+
+  learnSessions LearnSession[]
+  currentSession CurrentLearnSession?
+  cards Card[]
+  modules Module[]
+
+  folders Folder[]
+
+  @@map("users")
+}
+
+
+model CurrentLearnSession {
+    id String @id @default(uuid())
+    createdAt  DateTime @default(now())
+    userId String @unique
+    user   User @relation(fields: [userId], references: [id])
+    countOfCompleted  Int @default(0)
+    rightAnswers Int @default(0)
+    modules String[]
+}
+
+
+model LearnSession {
+    id String @id
+    createdAt  DateTime @default(now())
+    userId String
+    user   User @relation(fields: [userId], references: [id])
+    isCompleted Boolean
+    countOfCompleted Int
+    rightAnswers Int
+
+    @@map("learnSessions")
+}
+
+
+
+model Card {
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  notes      String?
+  phraseTranslation   String
+  sentence  SentenceUnit[]
+  sentenceTranslation String?
+
+  userId String
+  user   User @relation(fields: [userId], references: [id])
+
+  moduleId String
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  progress CardLearnProgress?
+
+  @@map("cards")
+}
+
+model SentenceUnit {
+    id  String    @id @default(uuid())
+    isPunctuation Boolean
+    isStudyPhrase Boolean
+    value String
+    translation String?
+    note String?
+
+    cardId String
+    card   Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+    @@map("sentenceUnits")
+}
+
+enum LEARN_STATUS {
+    NEW
+    SHOWN
+    IN_PROGRESS
+    FAMILIAR
+    KNOWN
+}
+
+model CardLearnProgress {
+    id String @id @default(uuid())
+    card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+    cardId String @unique
+    interval Int @default(0)
+    countOfAnswers Int @default(0)
+    countOfRightAnswers Int @default(0)
+    accuracy Int @default(100)
+    step Int @default(1)
+    status LEARN_STATUS @default(NEW)
+    lastRepetitionDate DateTime?
+    nextRepetitionDate DateTime?
+}
+
+
+model Module {
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  label      String
+
+  folderId  String?
+  folder Folder? @relation(fields: [folderId], references: [id])
+
+  userId String
+  user   User @relation(fields: [userId], references: [id])
+
+  cards Card[]
+
+  @@map("modules")
+}
+
+
+model Folder {
+  id  String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  name      String
+
+  userId String
+  user   User @relation(fields: [userId], references: [id])
+
+  modules Module[]
+
+  @@map("folders")
+}
+
+
+
+
