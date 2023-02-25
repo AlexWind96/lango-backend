@@ -14,7 +14,7 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  async register(dto: RegisterDto, fingerprint: string): Promise<Tokens> {
+  async register(dto: RegisterDto): Promise<Tokens> {
     //generate hash password
     const hash = await AuthService.getHash(dto.password)
     //save user to db
@@ -26,7 +26,7 @@ export class AuthService {
           name: dto.name,
         },
       })
-      const tokens = await this.getTokens(user.id, user.email, fingerprint)
+      const tokens = await this.getTokens(user.id, user.email)
 
       await this.updateRtHash(user.id, tokens.refresh_token)
 
@@ -40,7 +40,7 @@ export class AuthService {
       throw error
     }
   }
-  async login(dto: LoginDto, fingerprint: string): Promise<Tokens> {
+  async login(dto: LoginDto): Promise<Tokens> {
     //find the user by email
     const user = await this.prismaService.user.findUnique({
       where: {
@@ -59,7 +59,7 @@ export class AuthService {
       throw new ForbiddenException('Credentials incorrect')
 
     //Get tokens
-    const tokens = await this.getTokens(user.id, user.email, fingerprint)
+    const tokens = await this.getTokens(user.id, user.email)
     //update hashedRt in DB
     await this.updateRtHash(user.id, tokens.refresh_token)
 
@@ -80,11 +80,7 @@ export class AuthService {
     })
     return
   }
-  async refreshTokens(
-    userId: string,
-    rt: string,
-    fingerprint: string,
-  ): Promise<Tokens> {
+  async refreshTokens(userId: string, rt: string): Promise<Tokens> {
     const user = await this.prismaService.user.findUnique({
       where: {
         id: userId,
@@ -96,22 +92,17 @@ export class AuthService {
 
     if (!rtMatches) throw new ForbiddenException('Access denied')
     //Get tokens
-    const tokens = await this.getTokens(user.id, user.email, fingerprint)
+    const tokens = await this.getTokens(user.id, user.email)
     //update hashedRt in DB
     await this.updateRtHash(user.id, tokens.refresh_token)
 
     return tokens
   }
 
-  private async getTokens(
-    userId: string,
-    email: string,
-    fingerprint: string,
-  ): Promise<Tokens> {
+  private async getTokens(userId: string, email: string): Promise<Tokens> {
     const data = {
       sub: userId,
       email,
-      fp: fingerprint,
     }
     const [at, rt] = await Promise.all([
       this.jwt.signAsync(data, {

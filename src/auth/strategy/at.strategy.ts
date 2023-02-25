@@ -17,7 +17,6 @@ export class AtStrategy extends PassportStrategy(Strategy, 'jwt') {
     return {
       id: payload.sub,
       email: payload.email,
-      fp: payload.fp,
     }
   }
 }

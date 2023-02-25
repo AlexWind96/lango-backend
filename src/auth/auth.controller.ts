@@ -10,7 +10,7 @@ import { AuthService } from './auth.service'
 import { LoginDto, RegisterDto } from './dto'
 import { Tokens, UserAuthData } from './types'
 import { RtGuard } from './guard'
-import { GetFingerprint, GetUser, Public } from './decorator'
+import { GetUser, Public } from './decorator'
 
 @Controller('auth')
 export class AuthController {
@@ -18,20 +18,14 @@ export class AuthController {
 
   @Public()
   @Post('signup')
-  signup(
-    @Body() dto: RegisterDto,
-    @GetFingerprint() fingerprint: string,
-  ): Promise<Tokens> {
-    return this.authService.register(dto, fingerprint)
+  signup(@Body() dto: RegisterDto): Promise<Tokens> {
+    return this.authService.register(dto)
   }
   @Public()
   @HttpCode(HttpStatus.OK)
   @Post('signin')
-  signin(
-    @Body() dto: LoginDto,
-    @GetFingerprint() fingerprint: string,
-  ): Promise<Tokens> {
-    return this.authService.login(dto, fingerprint)
+  signin(@Body() dto: LoginDto): Promise<Tokens> {
+    return this.authService.login(dto)
   }
 
   @HttpCode(HttpStatus.OK)
@@ -45,6 +39,6 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('refresh')
   refreshTokens(@GetUser() user: UserAuthData) {
-    return this.authService.refreshTokens(user.id, user.refreshToken, user.fp)
+    return this.authService.refreshTokens(user.id, user.refreshToken)
   }
 }

@@ -5,7 +5,7 @@ import { PrismaModule } from './prisma/prisma.module'
 import { ConfigModule } from '@nestjs/config'
 import { APP_GUARD } from '@nestjs/core'
 import { FingerprintMiddleware } from './global/middlewares'
-import { AtGuard, FpGuard } from './auth/guard'
+import { AtGuard } from './auth/guard'
 import { CardsModule } from './cards/cards.module'
 import { ModulesModule } from './modules/modules.module'
 import { LearnSessionsModule } from './learn-sessions/learn-sessions.module'
@@ -24,10 +24,7 @@ import { CurrentLearnSessionModule } from './current-learn-session/current-learn
     LearnSessionsModule,
     CurrentLearnSessionModule,
   ],
-  providers: [
-    { provide: APP_GUARD, useClass: AtGuard },
-    { provide: APP_GUARD, useClass: FpGuard },
-  ],
+  providers: [{ provide: APP_GUARD, useClass: AtGuard }],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): any {
