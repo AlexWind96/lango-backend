@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
@@ -69,6 +70,7 @@ model Card {
   notes      String?
   phraseTranslation   String
   sentence  SentenceUnit[]
+  sentenceText String
   sentenceTranslation String?
 
   userId String
@@ -142,7 +144,8 @@ model Folder {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  name      String
+  label      String
+  description String?
 
   userId String
   user   User @relation(fields: [userId], references: [id])
