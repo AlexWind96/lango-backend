@@ -1,29 +1,36 @@
-import { ApiProperty } from '@nestjs/swagger'
 import { Type } from 'class-transformer'
-import { IsNumber, IsOptional, IsString } from 'class-validator'
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator'
 
 export class ConnectionArgs {
   @IsOptional()
   @IsNumber()
+  @IsNotEmpty()
   @Type(() => Number)
-  @ApiProperty({ required: false })
+  @Min(1)
   first?: number
 
   @IsOptional()
   @IsNumber()
+  @IsNotEmpty()
   @Type(() => Number)
-  @ApiProperty({ required: false })
+  @Min(1)
   last?: number
 
   @IsOptional()
   @IsString()
+  @IsNotEmpty()
   @Type(() => String)
-  @ApiProperty({ required: false })
   after?: string
 
   @IsOptional()
   @IsString()
+  @IsNotEmpty()
   @Type(() => String)
-  @ApiProperty({ required: false })
   before?: string
 }
