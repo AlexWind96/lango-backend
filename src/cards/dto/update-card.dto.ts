@@ -46,4 +46,8 @@ export class UpdateCardDto extends PartialType(CreateCardDto) {
   @IsString()
   @IsOptional()
   phraseTranslation: string
+
+  @IsString()
+  @IsOptional()
+  sentenceText: string
 }

@@ -5,7 +5,6 @@ import {
   NotFoundException,
 } from '@nestjs/common'
 import { LEARN_STATUS, Prisma } from '@prisma/client'
-import { ConnectionArgs } from 'src/page/connection-args.dto'
 import { Page } from 'src/page/page.dto'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { CreateCardDto } from './dto/create-card.dto'
@@ -17,6 +16,7 @@ import {
   changeCardProgressPositive,
   getNextLearnCard,
 } from './helpers'
+import { ConnectionArgs } from '../page/connection-args.dto'
 
 @Injectable()
 export class CardsService {
@@ -44,6 +44,7 @@ export class CardsService {
         phraseTranslation: createCardDto.phraseTranslation,
         sentenceTranslation: createCardDto.sentenceTranslation,
         notes: createCardDto.notes,
+        sentenceText: createCardDto.sentenceText,
         userId,
         moduleId: createCardDto.moduleId,
         sentence: {
@@ -65,24 +66,19 @@ export class CardsService {
   }
 
   async findAll(
-    userId: string,
-    moduleId: string,
-    connectionArgs: ConnectionArgs,
+    queryOptions: Pick<Prisma.CardFindManyArgs, 'orderBy' | 'where'>,
+    paginateOptions: ConnectionArgs,
   ) {
-    const where: Prisma.CardWhereInput = {
-      userId,
-      moduleId,
-    }
     const page = await findManyCursorConnection(
       (args: Prisma.CardFindManyArgs) =>
         this.prisma.card.findMany({
           ...args,
-          where,
+          where: queryOptions.where,
           include: { sentence: true, progress: true },
-          orderBy: [{ createdAt: 'desc' }],
+          orderBy: queryOptions.orderBy,
         }),
-      () => this.prisma.card.count({ where }),
-      connectionArgs,
+      () => this.prisma.card.count({ where: queryOptions.where }),
+      paginateOptions,
     )
     return new Page<CardEntity>(page)
   }
@@ -123,6 +119,7 @@ export class CardsService {
         phraseTranslation: updateCardDto.phraseTranslation,
         sentenceTranslation: updateCardDto.sentenceTranslation,
         notes: updateCardDto.notes,
+        sentenceText: updateCardDto.sentenceText,
         moduleId: updateCardDto.moduleId,
         sentence: updateCardDto.sentence && {
           deleteMany: {

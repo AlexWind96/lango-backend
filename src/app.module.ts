@@ -10,6 +10,7 @@ import { CardsModule } from './cards/cards.module'
 import { ModulesModule } from './modules/modules.module'
 import { LearnSessionsModule } from './learn-sessions/learn-sessions.module'
 import { CurrentLearnSessionModule } from './current-learn-session/current-learn-session.module'
+import { FoldersModule } from './folders/folders.module'
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { CurrentLearnSessionModule } from './current-learn-session/current-learn
     ModulesModule,
     LearnSessionsModule,
     CurrentLearnSessionModule,
+    FoldersModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: AtGuard }],
 })

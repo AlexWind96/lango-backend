@@ -47,6 +47,10 @@ export class CreateCardDto {
 
   @IsString()
   @IsNotEmpty()
+  sentenceText: string
+
+  @IsString()
+  @IsNotEmpty()
   moduleId: string
 
   @IsString()

@@ -6,6 +6,7 @@ export class CardEntity implements Card {
   @ApiProperty() createdAt: Date
   @ApiProperty() updatedAt: Date
   @ApiProperty() sentence: SentenceUnit[]
+  @ApiProperty() sentenceText: string
   @ApiProperty() phraseTranslation: string
   @ApiProperty({ required: false, nullable: true }) sentenceTranslation:
     | string
