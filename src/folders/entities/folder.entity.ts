@@ -7,7 +7,7 @@ export class FolderEntity implements Folder {
   label: string
   userId: string
   modules?: Module[]
-  description?: string
+  description: string | null
 
   constructor(partial: Partial<FolderEntity>) {
     Object.assign(this, partial)
