@@ -6,7 +6,7 @@ export class FolderEntity implements Folder {
   updatedAt: Date
   label: string
   userId: string
-  modules?: Module[]
+  modules: Module[]
   description: string | null
 
   constructor(partial: Partial<FolderEntity>) {

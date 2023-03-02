@@ -27,6 +27,17 @@ export class FoldersService {
         ...createFolderDto,
         userId,
       },
+      include: {
+        modules: {
+          include: {
+            _count: {
+              select: {
+                cards: true,
+              },
+            },
+          },
+        },
+      },
     })
   }
 
@@ -39,6 +50,17 @@ export class FoldersService {
         this.prisma.folder.findMany({
           ...args,
           where,
+          include: {
+            modules: {
+              include: {
+                _count: {
+                  select: {
+                    cards: true,
+                  },
+                },
+              },
+            },
+          },
         }),
       () => this.prisma.folder.count({ where }),
       connectionArgs,
@@ -53,7 +75,15 @@ export class FoldersService {
         userId,
       },
       include: {
-        modules: true,
+        modules: {
+          include: {
+            _count: {
+              select: {
+                cards: true,
+              },
+            },
+          },
+        },
       },
     })
   }
@@ -78,7 +108,15 @@ export class FoldersService {
         ...updateFolderDto,
       },
       include: {
-        modules: true,
+        modules: {
+          include: {
+            _count: {
+              select: {
+                cards: true,
+              },
+            },
+          },
+        },
       },
     })
   }
@@ -98,6 +136,17 @@ export class FoldersService {
     return await this.prisma.folder.delete({
       where: {
         id,
+      },
+      include: {
+        modules: {
+          include: {
+            _count: {
+              select: {
+                cards: true,
+              },
+            },
+          },
+        },
       },
     })
   }
