@@ -33,7 +33,7 @@ export class CardsController {
       before,
       after,
       orderBy = 'createdAt',
-      sort = 'asc',
+      sort = 'desc',
       keywords,
       ...filters
     } = query
