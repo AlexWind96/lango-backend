@@ -5,13 +5,13 @@ import {
 } from '@nestjs/common'
 import { UpdateModuleDto } from './dto/update-module.dto'
 import { PrismaService } from '../prisma/prisma.service'
-import { ConnectionArgs } from '../page/connection-args.dto'
 import { Prisma } from '@prisma/client'
 import { findManyCursorConnection } from '@devoxa/prisma-relay-cursor-connection'
 import { Page } from '../page/page.dto'
 import { ModuleEntity } from './entities/module.entity'
 import { CreateModuleDto } from './dto/create-module.dto'
 import { getCountsByProgress } from './helpers'
+import { GetModulesDto } from './dto/get-modules.dto'
 
 @Injectable()
 export class ModulesService {
@@ -38,10 +38,13 @@ export class ModulesService {
     })
   }
 
-  async findAll(userId: string, connectionArgs: ConnectionArgs) {
+  async findAll(userId: string, query: GetModulesDto) {
+    const { folderId, ...connectionArgs } = query
     const where: Prisma.ModuleWhereInput = {
       userId,
+      folderId: folderId === 'without_folder' ? null : folderId,
     }
+
     const page = await findManyCursorConnection(
       (args: Prisma.ModuleFindManyArgs) =>
         this.prisma.module.findMany({

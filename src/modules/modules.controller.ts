@@ -12,7 +12,7 @@ import { ModulesService } from './modules.service'
 import { CreateModuleDto } from './dto/create-module.dto'
 import { UpdateModuleDto } from './dto/update-module.dto'
 import { GetUser } from '../auth/decorator'
-import { ConnectionArgs } from '../page/connection-args.dto'
+import { GetModulesDto } from './dto/get-modules.dto'
 
 @Controller('modules')
 export class ModulesController {
@@ -27,11 +27,8 @@ export class ModulesController {
   }
 
   @Get()
-  findAll(
-    @GetUser('id') userId: string,
-    @Query() connectionArgs: ConnectionArgs,
-  ) {
-    return this.modulesService.findAll(userId, connectionArgs)
+  findAll(@GetUser('id') userId: string, @Query() query: GetModulesDto) {
+    return this.modulesService.findAll(userId, query)
   }
 
   @Get(':id')
