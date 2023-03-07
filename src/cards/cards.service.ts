@@ -74,7 +74,7 @@ export class CardsService {
         this.prisma.card.findMany({
           ...args,
           where: queryOptions.where,
-          include: { sentence: true, progress: true },
+          include: { sentence: true, progress: true, module: true },
           orderBy: queryOptions.orderBy,
         }),
       () => this.prisma.card.count({ where: queryOptions.where }),

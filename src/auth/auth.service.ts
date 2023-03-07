@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable } from '@nestjs/common'
+import {
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 import { LoginDto, RegisterDto } from './dto'
 import * as argon from 'argon2'
@@ -86,11 +90,11 @@ export class AuthService {
         id: userId,
       },
     })
-    if (!user || !user.hashedRt) throw new ForbiddenException('Access denied')
+    if (!user || !user.hashedRt) throw new UnauthorizedException()
 
     const rtMatches = await AuthService.verifyHash(user.hashedRt, rt)
 
-    if (!rtMatches) throw new ForbiddenException('Access denied')
+    if (!rtMatches) throw new UnauthorizedException()
     //Get tokens
     const tokens = await this.getTokens(user.id, user.email)
     //update hashedRt in DB
