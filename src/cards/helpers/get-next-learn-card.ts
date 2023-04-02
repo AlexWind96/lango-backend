@@ -25,7 +25,7 @@ const getExpiredFamiliarCards = (
     .filter((card) => card.progress.status === LEARN_STATUS.FAMILIAR)
     .filter((card) => {
       if (card.progress.interval > 1) {
-        return moment(card.progress.nextRepetitionDate).isSame(
+        return moment(card.progress.nextRepetitionDate).isSameOrAfter(
           learnSessionDate,
           'day',
         )
@@ -45,7 +45,7 @@ const getExpiredInProgressCards = (
     .filter((card) => card.progress.status === LEARN_STATUS.IN_PROGRESS)
     .filter((card) => {
       if (card.progress.interval > 1) {
-        return moment(card.progress.nextRepetitionDate).isSame(
+        return moment(card.progress.nextRepetitionDate).isSameOrAfter(
           learnSessionDate,
           'day',
         )
@@ -65,7 +65,7 @@ const getExpiredKnownCards = (
     .filter((card) => card.progress.status === LEARN_STATUS.KNOWN)
     .filter((card) => {
       if (card.progress.interval > 1) {
-        return moment(card.progress.nextRepetitionDate).isSame(
+        return moment(card.progress.nextRepetitionDate).isSameOrAfter(
           learnSessionDate,
           'day',
         )
