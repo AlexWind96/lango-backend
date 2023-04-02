@@ -57,6 +57,26 @@ const getExpiredInProgressCards = (
     })
 }
 
+const getExpiredKnownCards = (
+  cards: CardEntity[],
+  learnSessionDate: Date,
+): CardEntity[] => {
+  return cards
+    .filter((card) => card.progress.status === LEARN_STATUS.KNOWN)
+    .filter((card) => {
+      if (card.progress.interval > 1) {
+        return moment(card.progress.nextRepetitionDate).isSame(
+          learnSessionDate,
+          'day',
+        )
+      } else {
+        return (
+          moment(card.progress.nextRepetitionDate).toDate() < moment().toDate()
+        )
+      }
+    })
+}
+
 const getCardWithMinimalAccuracy = (cards: CardEntity[]): CardEntity | null => {
   if (cards.length === 0) return null
   return cards.reduce((acc, current) => {
@@ -95,6 +115,14 @@ export const getNextLearnCard = (
   )
   if (expiredInProgressCards.length) {
     return getCardWithMinimalAccuracy(expiredInProgressCards)
+  }
+
+  const expiredKnownCards = getExpiredKnownCards(
+    notNewCards,
+    learningSessionData,
+  )
+  if (expiredKnownCards.length) {
+    return getCardWithMinimalAccuracy(expiredKnownCards)
   }
 
   const newCards = getNewCards(cards)
