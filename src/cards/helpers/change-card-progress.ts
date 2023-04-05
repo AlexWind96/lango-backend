@@ -4,9 +4,9 @@ import * as moment from 'moment'
 
 const getAccuracy = (
   cardProgress: CardLearnProgressEntity,
-  answer: boolean,
+  isAnswerRight: boolean,
 ) => {
-  if (answer) {
+  if (isAnswerRight) {
     return Math.round(
       ((cardProgress.countOfRightAnswers + 1) /
         (cardProgress.countOfAnswers + 1)) *
@@ -131,6 +131,18 @@ export const changeCardProgressPositive = (
         nextRepetitionDate: getNextIntervalDate(cardProgress.interval + 1),
       }
     }
+    case LEARN_STATUS.KNOWN: {
+      return {
+        status: LEARN_STATUS.KNOWN,
+        interval: cardProgress.interval + 1,
+        step: 5,
+        accuracy: getAccuracy(cardProgress, true),
+        countOfRightAnswers: cardProgress.countOfRightAnswers + 1,
+        countOfAnswers: cardProgress.countOfAnswers + 1,
+        lastRepetitionDate: moment().toDate(),
+        nextRepetitionDate: getNextIntervalDate(cardProgress.interval + 1),
+      }
+    }
   }
 }
 
@@ -154,13 +166,13 @@ export const changeCardProgressNegative = (
     case LEARN_STATUS.SHOWN: {
       return {
         status: LEARN_STATUS.SHOWN,
-        interval: 0,
+        interval: 1,
         step: 2,
         accuracy: getAccuracy(cardProgress, false),
         countOfRightAnswers: cardProgress.countOfRightAnswers,
         countOfAnswers: cardProgress.countOfAnswers + 1,
         lastRepetitionDate: moment().toDate(),
-        nextRepetitionDate: getNextIntervalDate(0),
+        nextRepetitionDate: getNextIntervalDate(1),
       }
     }
     case LEARN_STATUS.IN_PROGRESS: {
@@ -175,7 +187,7 @@ export const changeCardProgressNegative = (
         countOfRightAnswers: cardProgress.countOfRightAnswers,
         countOfAnswers: cardProgress.countOfAnswers + 1,
         lastRepetitionDate: moment().toDate(),
-        nextRepetitionDate: getNextIntervalDate(0),
+        nextRepetitionDate: getNextIntervalDate(1),
       }
     }
     case LEARN_STATUS.FAMILIAR: {
@@ -187,7 +199,19 @@ export const changeCardProgressNegative = (
         countOfRightAnswers: cardProgress.countOfRightAnswers,
         countOfAnswers: cardProgress.countOfAnswers + 1,
         lastRepetitionDate: moment().toDate(),
-        nextRepetitionDate: getNextIntervalDate(0),
+        nextRepetitionDate: getNextIntervalDate(1),
+      }
+    }
+    case LEARN_STATUS.KNOWN: {
+      return {
+        status: LEARN_STATUS.IN_PROGRESS,
+        interval: 1,
+        step: 3,
+        accuracy: getAccuracy(cardProgress, false),
+        countOfRightAnswers: cardProgress.countOfRightAnswers,
+        countOfAnswers: cardProgress.countOfAnswers + 1,
+        lastRepetitionDate: moment().toDate(),
+        nextRepetitionDate: getNextIntervalDate(1),
       }
     }
   }
