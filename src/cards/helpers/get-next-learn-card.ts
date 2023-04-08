@@ -1,4 +1,4 @@
-import { LEARN_STATUS } from '@prisma/client'
+import { CurrentLearnSession, LEARN_STATUS } from '@prisma/client'
 import * as moment from 'moment'
 import { CardEntity } from '../entities/card.entity'
 
@@ -84,25 +84,27 @@ const getCardWithMinimalAccuracy = (cards: CardEntity[]): CardEntity | null => {
   })
 }
 
-const getRandom = <Item>(items: Item[]): Item => {
+const getRandomCardFromArray = <Item>(items: Item[]): Item => {
   return items[Math.floor(Math.random() * items.length)]
 }
 
+const getRandomZeroOrOne = () => Math.floor(Math.random() * 2)
+
 export const getNextLearnCard = (
   cards: CardEntity[],
-  learningSessionData: Date,
+  learningSessionDate: CurrentLearnSession,
 ): CardEntity | null => {
   const notNewCards = getNotNewCards(cards)
 
   const expiredShownCards = getExpiredShownCards(notNewCards)
 
   if (expiredShownCards.length) {
-    return getRandom(expiredShownCards)
+    return getRandomCardFromArray(expiredShownCards)
   }
 
   const expiredFamiliarCards = getExpiredFamiliarCards(
     notNewCards,
-    learningSessionData,
+    learningSessionDate.createdAt,
   )
 
   if (expiredFamiliarCards.length) {
@@ -111,21 +113,26 @@ export const getNextLearnCard = (
 
   const expiredInProgressCards = getExpiredInProgressCards(
     notNewCards,
-    learningSessionData,
+    learningSessionDate.createdAt,
   )
   if (expiredInProgressCards.length) {
     return getCardWithMinimalAccuracy(expiredInProgressCards)
   }
 
-  const expiredKnownCards = getExpiredKnownCards(
-    notNewCards,
-    learningSessionData,
-  )
-  if (expiredKnownCards.length) {
-    return getCardWithMinimalAccuracy(expiredKnownCards)
+  const random = getRandomZeroOrOne()
+  if (random === 0) {
+    const expiredKnownCards = getExpiredKnownCards(
+      notNewCards,
+      learningSessionDate.createdAt,
+    )
+    if (expiredKnownCards.length) {
+      return getCardWithMinimalAccuracy(expiredKnownCards)
+    }
+  } else {
+    const newCards = getNewCards(cards)
+    const randomCard = getRandomCardFromArray(newCards)
+    return randomCard ? randomCard : null
   }
 
-  const newCards = getNewCards(cards)
-  const randomCard = getRandom(newCards)
-  return randomCard ? randomCard : null
+  return null
 }

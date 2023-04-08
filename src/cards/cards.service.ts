@@ -237,6 +237,6 @@ export class CardsService {
       })
     }
 
-    return getNextLearnCard(cards, currentSession.createdAt)
+    return getNextLearnCard(cards, currentSession)
   }
 }

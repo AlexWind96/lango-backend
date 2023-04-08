@@ -66,7 +66,7 @@ const getNextIntervalDate = (interval: number) => {
 const isFamiliar = (cardProgress: CardLearnProgressEntity): boolean => {
   const nextInterval = cardProgress.interval + 1
   const nextAccuracy = getAccuracy(cardProgress, true)
-  return (nextAccuracy >= 80 && nextInterval >= 4) || nextInterval >= 6
+  return (nextAccuracy >= 80 && nextInterval >= 4) || nextInterval >= 5
 }
 
 const isInProgress = (cardProgress: CardLearnProgressEntity): boolean => {
@@ -193,25 +193,25 @@ export const changeCardProgressNegative = (
     case LEARN_STATUS.FAMILIAR: {
       return {
         status: LEARN_STATUS.IN_PROGRESS,
-        interval: 1,
+        interval: 2,
         step: 3,
         accuracy: getAccuracy(cardProgress, false),
         countOfRightAnswers: cardProgress.countOfRightAnswers,
         countOfAnswers: cardProgress.countOfAnswers + 1,
         lastRepetitionDate: moment().toDate(),
-        nextRepetitionDate: getNextIntervalDate(1),
+        nextRepetitionDate: getNextIntervalDate(2),
       }
     }
     case LEARN_STATUS.KNOWN: {
       return {
         status: LEARN_STATUS.IN_PROGRESS,
-        interval: 1,
+        interval: 2,
         step: 3,
         accuracy: getAccuracy(cardProgress, false),
         countOfRightAnswers: cardProgress.countOfRightAnswers,
         countOfAnswers: cardProgress.countOfAnswers + 1,
         lastRepetitionDate: moment().toDate(),
-        nextRepetitionDate: getNextIntervalDate(1),
+        nextRepetitionDate: getNextIntervalDate(2),
       }
     }
   }
