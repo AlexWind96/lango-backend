@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgres://AlexWind96:fBUKL32xtjYV@ep-square-wind-011395.eu-central-1.aws.neon.tech/neondb"
+  url      = env("DATABASE_URL")
 }
 
 enum Role {
