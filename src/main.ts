@@ -12,6 +12,12 @@ async function bootstrap() {
   app.setGlobalPrefix('api')
   app.use(cookieParser())
   app.use(helmet())
+  app.enableCors({
+    origin: [
+      'http://localhost:3000',
+      'https://vocabling-a8d51.firebaseapp.com/',
+    ],
+  })
   // binds ValidationPipe to the entire application
   app.useGlobalPipes(
     new ValidationPipe({
