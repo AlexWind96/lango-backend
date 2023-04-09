@@ -4,11 +4,10 @@ import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common'
 import { PrismaService } from './prisma/prisma.service'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { PrismaClientExceptionFilter } from './global/exceptions'
-import helmet from 'helmet'
 import * as cookieParser from 'cookie-parser'
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
+  const app = await NestFactory.create(AppModule, { cors: false })
   app.setGlobalPrefix('api')
   app.use(cookieParser())
   // app.use(helmet())
