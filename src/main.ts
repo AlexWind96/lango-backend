@@ -4,7 +4,6 @@ import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common'
 import { PrismaService } from './prisma/prisma.service'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { PrismaClientExceptionFilter } from './global/exceptions'
-import helmet from 'helmet'
 import * as cookieParser from 'cookie-parser'
 
 async function bootstrap() {
@@ -12,7 +11,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api')
   app.use(cookieParser())
   //ts-ignore
-  app.use(helmet())
+  // app.use(helmet())
   // binds ValidationPipe to the entire application
   app.useGlobalPipes(
     new ValidationPipe({
