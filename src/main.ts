@@ -15,7 +15,8 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:3000',
-      'https://vocabling-a8d51.firebaseapp.com/',
+      'https://vocabling-a8d51.firebaseapp.com',
+      'http://127.0.0.1:5173',
     ],
   })
   // binds ValidationPipe to the entire application
