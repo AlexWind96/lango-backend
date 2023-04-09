@@ -84,55 +84,63 @@ const getCardWithMinimalAccuracy = (cards: CardEntity[]): CardEntity | null => {
   })
 }
 
-const getRandomCardFromArray = <Item>(items: Item[]): Item => {
-  return items[Math.floor(Math.random() * items.length)]
+const getRandomCardFromArray = <Item>(items: Item[]): Item | null => {
+  if (items.length) {
+    return items[Math.floor(Math.random() * items.length)]
+  } else return null
 }
 
-const getRandomZeroOrOne = () => Math.floor(Math.random() * 2)
+const getRandom = () => Math.floor(Math.random() * 10)
 
 export const getNextLearnCard = (
   cards: CardEntity[],
   learningSessionDate: CurrentLearnSession,
 ): CardEntity | null => {
+  const { createdAt: sessionDate } = learningSessionDate
+
+  //1. Get New card with chance 10%
+  const random = getRandom()
+  const newCards = getNewCards(cards)
+  const randomNewCard = getRandomCardFromArray(newCards)
+  if (random === 1 && randomNewCard) {
+    return randomNewCard
+  }
+
+  //2. Get random shown card
   const notNewCards = getNotNewCards(cards)
 
-  const expiredShownCards = getExpiredShownCards(notNewCards)
-
-  if (expiredShownCards.length) {
-    return getRandomCardFromArray(expiredShownCards)
-  }
-
-  const expiredFamiliarCards = getExpiredFamiliarCards(
-    notNewCards,
-    learningSessionDate.createdAt,
+  const randomShownCard = getRandomCardFromArray(
+    getExpiredShownCards(notNewCards),
   )
 
-  if (expiredFamiliarCards.length) {
-    return getCardWithMinimalAccuracy(expiredFamiliarCards)
+  if (randomShownCard) {
+    return randomShownCard
   }
 
-  const expiredInProgressCards = getExpiredInProgressCards(
-    notNewCards,
-    learningSessionDate.createdAt,
+  //3. Get familiar card with minimal accuracy
+  const randomFamiliarCard = getCardWithMinimalAccuracy(
+    getExpiredFamiliarCards(notNewCards, sessionDate),
   )
-  if (expiredInProgressCards.length) {
-    return getCardWithMinimalAccuracy(expiredInProgressCards)
+
+  if (randomFamiliarCard) {
+    return randomFamiliarCard
+  }
+  //4. Get in progress card with minimal accuracy
+  const randomInProgressCard = getCardWithMinimalAccuracy(
+    getExpiredInProgressCards(notNewCards, sessionDate),
+  )
+
+  if (randomInProgressCard) {
+    return randomInProgressCard
+  }
+  //5. Get known card with minimal accuracy
+  const knownCard = getCardWithMinimalAccuracy(
+    getExpiredKnownCards(notNewCards, sessionDate),
+  )
+  if (knownCard) {
+    return knownCard
   }
 
-  const random = getRandomZeroOrOne()
-  if (random === 0) {
-    const expiredKnownCards = getExpiredKnownCards(
-      notNewCards,
-      learningSessionDate.createdAt,
-    )
-    if (expiredKnownCards.length) {
-      return getCardWithMinimalAccuracy(expiredKnownCards)
-    }
-  } else {
-    const newCards = getNewCards(cards)
-    const randomCard = getRandomCardFromArray(newCards)
-    return randomCard ? randomCard : null
-  }
-
-  return null
+  //6. Get new card
+  return randomNewCard ? randomNewCard : null
 }

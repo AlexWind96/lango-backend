@@ -38,6 +38,35 @@ export class ModulesService {
     })
   }
 
+  async getModules(
+    args: Prisma.ModuleFindManyArgs,
+    where: Prisma.ModuleWhereInput,
+  ) {
+    const modules = await this.prisma.module.findMany({
+      ...args,
+      where,
+      include: {
+        _count: {
+          select: {
+            cards: true,
+          },
+        },
+        cards: {
+          select: {
+            progress: true,
+          },
+        },
+      },
+    })
+    return modules.map((module) => {
+      return {
+        ...module,
+        counts: getCountsByProgress(module.cards),
+        cards: undefined,
+      }
+    })
+  }
+
   async findAll(userId: string, query: GetModulesDto) {
     const { folderId, ...connectionArgs } = query
     const where: Prisma.ModuleWhereInput = {
@@ -46,18 +75,7 @@ export class ModulesService {
     }
 
     const page = await findManyCursorConnection(
-      (args: Prisma.ModuleFindManyArgs) =>
-        this.prisma.module.findMany({
-          ...args,
-          where,
-          include: {
-            _count: {
-              select: {
-                cards: true,
-              },
-            },
-          },
-        }),
+      (args: Prisma.ModuleFindManyArgs) => this.getModules(args, where),
       () => this.prisma.module.count({ where }),
       connectionArgs,
     )
