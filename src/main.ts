@@ -11,6 +11,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true })
   app.setGlobalPrefix('api')
   app.use(cookieParser())
+  //ts-ignore
   app.use(helmet())
   // binds ValidationPipe to the entire application
   app.useGlobalPipes(
