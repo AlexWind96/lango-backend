@@ -40,25 +40,22 @@ const getNextIntervalDate = (interval: number) => {
       return getNextDay(1)
     }
     case 3: {
-      return getNextDay(2)
-    }
-    case 4: {
       return getNextDay(3)
     }
-    case 5: {
+    case 4: {
       return getNextDay(6)
     }
+    case 5: {
+      return getNextDay(15)
+    }
     case 6: {
-      return getNextDay(11)
+      return getNextDay(30)
     }
     case 7: {
-      return getNextDay(21)
-    }
-    case 8: {
-      return getNextDay(40)
+      return getNextDay(50)
     }
     default: {
-      return getNextDay(40)
+      return getNextDay(50)
     }
   }
 }
@@ -146,6 +143,9 @@ export const changeCardProgressPositive = (
   }
 }
 
+const isShown = ({ accuracy, interval }: CardLearnProgressEntity): boolean => {
+  return (accuracy < 60 && interval === 1) || interval <= 2
+}
 export const changeCardProgressNegative = (
   cardProgress: CardLearnProgressEntity,
 ): Partial<CardLearnProgressEntity> => {
@@ -166,28 +166,27 @@ export const changeCardProgressNegative = (
     case LEARN_STATUS.SHOWN: {
       return {
         status: LEARN_STATUS.SHOWN,
-        interval: 1,
+        interval: cardProgress.interval - 1,
         step: 2,
         accuracy: getAccuracy(cardProgress, false),
         countOfRightAnswers: cardProgress.countOfRightAnswers,
         countOfAnswers: cardProgress.countOfAnswers + 1,
         lastRepetitionDate: moment().toDate(),
-        nextRepetitionDate: getNextIntervalDate(1),
+        nextRepetitionDate: getNextIntervalDate(cardProgress.interval - 1),
       }
     }
     case LEARN_STATUS.IN_PROGRESS: {
       return {
-        status:
-          cardProgress.interval === 1
-            ? LEARN_STATUS.SHOWN
-            : LEARN_STATUS.IN_PROGRESS,
-        interval: 1,
-        step: cardProgress.interval === 1 ? 2 : 3,
+        status: isShown(cardProgress)
+          ? LEARN_STATUS.SHOWN
+          : LEARN_STATUS.IN_PROGRESS,
+        interval: cardProgress.interval - 1,
+        step: isShown(cardProgress) ? 2 : 3,
         accuracy: getAccuracy(cardProgress, false),
         countOfRightAnswers: cardProgress.countOfRightAnswers,
         countOfAnswers: cardProgress.countOfAnswers + 1,
         lastRepetitionDate: moment().toDate(),
-        nextRepetitionDate: getNextIntervalDate(1),
+        nextRepetitionDate: getNextIntervalDate(cardProgress.interval - 1),
       }
     }
     case LEARN_STATUS.FAMILIAR: {
