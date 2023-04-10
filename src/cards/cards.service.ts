@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
-import { LEARN_STATUS, Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 import { Page } from 'src/page/page.dto'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { CreateCardDto } from './dto/create-card.dto'
@@ -162,9 +162,6 @@ export class CardsService {
     if (!progress) {
       throw new NotFoundException(`Card progress is not found`)
     }
-    if (progress.status === LEARN_STATUS.KNOWN) {
-      throw new ForbiddenException(`Known cards unchanged`)
-    }
 
     await this.currentLearnSessionService.incrementCount(userId, true)
 
@@ -184,9 +181,6 @@ export class CardsService {
     })
     if (!progress) {
       throw new NotFoundException(`Card progress is not found`)
-    }
-    if (progress.status === LEARN_STATUS.KNOWN) {
-      throw new ForbiddenException(`Known cards unchanged`)
     }
     //Update current learn session
     await this.currentLearnSessionService.incrementCount(userId, false)
