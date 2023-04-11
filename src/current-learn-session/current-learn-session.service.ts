@@ -2,10 +2,12 @@ import { Injectable } from '@nestjs/common'
 import { CurrentLearnSession } from '@prisma/client'
 import * as moment from 'moment'
 import { PrismaService } from '../prisma/prisma.service'
+import { UpdateCurrentLearnSessionDto } from './dto/update-current-learn-session.dto'
 
 @Injectable()
 export class CurrentLearnSessionService {
   constructor(private prismaService: PrismaService) {}
+
   async recreateCurrentLearnSession(
     userId: string,
   ): Promise<CurrentLearnSession> {
@@ -21,6 +23,7 @@ export class CurrentLearnSessionService {
       },
     })
   }
+
   async getCurrentLearnSession(userId: string) {
     const user = await this.prismaService.user.findUnique({
       where: {
@@ -88,13 +91,28 @@ export class CurrentLearnSessionService {
     return null
   }
 
-  async updateModules(userId: string, modules: string[]) {
+  async updateModules(userId: string, dto: UpdateCurrentLearnSessionDto) {
+    if (dto.folderId) {
+      const modules = await this.prismaService.module.findMany({
+        where: {
+          folderId: dto.folderId,
+        },
+      })
+      return await this.prismaService.currentLearnSession.update({
+        where: {
+          userId,
+        },
+        data: {
+          modules: modules.map((module) => module.id),
+        },
+      })
+    }
     return await this.prismaService.currentLearnSession.update({
       where: {
         userId,
       },
       data: {
-        modules,
+        modules: dto.modules,
       },
     })
   }

@@ -33,6 +33,6 @@ export class CurrentLearnSessionController {
     @GetUser('id') userId: string,
     @Body() dto: UpdateCurrentLearnSessionDto,
   ) {
-    return this.currentLearnSessionService.updateModules(userId, dto.modules)
+    return this.currentLearnSessionService.updateModules(userId, dto)
   }
 }

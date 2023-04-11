@@ -56,6 +56,7 @@ export class ModulesService {
             progress: true,
           },
         },
+        folder: true,
       },
     })
     return modules.map((module) => {
