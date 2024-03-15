@@ -15,6 +15,7 @@ import { unknownToNumber } from '../../transformers/value.transformer'
 export enum CardOrderByFields {
   Progress = 'progress',
   CreatedAt = 'createdAt',
+  Views = 'views',
 }
 
 export class GetCardsDto extends ConnectionArgs {
@@ -27,7 +28,11 @@ export class GetCardsDto extends ConnectionArgs {
   @IsOptional()
   @IsNotEmpty()
   @IsString()
-  @IsIn([CardOrderByFields.Progress, CardOrderByFields.CreatedAt])
+  @IsIn([
+    CardOrderByFields.Progress,
+    CardOrderByFields.CreatedAt,
+    CardOrderByFields.Views,
+  ])
   orderBy?: CardOrderByFields
 
   @IsIn([SortType.Asc, SortType.Desc])

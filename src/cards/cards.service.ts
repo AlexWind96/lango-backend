@@ -143,7 +143,7 @@ export class CardsService {
       throw new ForbiddenException()
     }
 
-    return await this.prisma.card.delete({
+    return this.prisma.card.delete({
       where: {
         id,
       },
@@ -165,11 +165,33 @@ export class CardsService {
 
     await this.currentLearnSessionService.incrementCount(userId, true)
 
-    return await this.prisma.cardLearnProgress.update({
+    return this.prisma.cardLearnProgress.update({
       where: {
         cardId: id,
       },
       data: changeCardProgressPositive(progress),
+    })
+  }
+
+  async registerView(id: string, userId: string) {
+    const progress = await this.prisma.cardLearnProgress.findUnique({
+      where: {
+        cardId: id,
+      },
+    })
+    if (!progress) {
+      throw new NotFoundException(`Card progress is not found`)
+    }
+
+    return this.prisma.cardLearnProgress.update({
+      where: {
+        cardId: id,
+      },
+      data: {
+        views: {
+          increment: 1,
+        },
+      },
     })
   }
 

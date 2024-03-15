@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["fullTextSearch"]
 }
 
@@ -18,63 +18,59 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  hash        String
-  hashedRt    String?
-  email       String        @unique
-  name        String
-  role        Role          @default(USER)
+  hash     String
+  hashedRt String?
+  email    String  @unique
+  name     String
+  role     Role    @default(USER)
 
   learnGoal Int @default(50)
 
-  learnSessions LearnSession[]
+  learnSessions  LearnSession[]
   currentSession CurrentLearnSession?
-  cards Card[]
-  modules Module[]
+  cards          Card[]
+  modules        Module[]
 
   folders Folder[]
 
   @@map("users")
 }
 
-
 model CurrentLearnSession {
-    id String @id @default(uuid())
-    createdAt  DateTime @default(now())
-    userId String @unique
-    user   User @relation(fields: [userId], references: [id])
-    countOfCompleted  Int @default(0)
-    rightAnswers Int @default(0)
-    modules String[]
+  id               String   @id @default(uuid())
+  createdAt        DateTime @default(now())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id])
+  countOfCompleted Int      @default(0)
+  rightAnswers     Int      @default(0)
+  modules          String[]
 }
-
 
 model LearnSession {
-    id String @id
-    createdAt  DateTime @default(now())
-    userId String
-    user   User @relation(fields: [userId], references: [id])
-    isCompleted Boolean
-    countOfCompleted Int
-    rightAnswers Int
+  id               String   @id
+  createdAt        DateTime @default(now())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id])
+  isCompleted      Boolean
+  countOfCompleted Int
+  rightAnswers     Int
 
-    @@map("learnSessions")
+  @@map("learnSessions")
 }
 
-
-
 model Card {
-  id        String    @id @default(uuid())
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  notes      String?
+  notes               String?
   phraseTranslation   String
-  sentence  SentenceUnit[]
-  sentenceText String
+  sentence            SentenceUnit[]
+  sentenceText        String
   sentenceTranslation String?
 
   userId String
-  user   User @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
 
   moduleId String
   module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
@@ -85,75 +81,70 @@ model Card {
 }
 
 model SentenceUnit {
-    id  String    @id @default(uuid())
-    isPunctuation Boolean
-    isStudyPhrase Boolean
-    value String
-    translation String?
-    note String?
+  id            String  @id @default(uuid())
+  isPunctuation Boolean
+  isStudyPhrase Boolean
+  value         String
+  translation   String?
+  note          String?
 
-    cardId String
-    card   Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  cardId String
+  card   Card   @relation(fields: [cardId], references: [id], onDelete: Cascade)
 
-    @@map("sentenceUnits")
+  @@map("sentenceUnits")
 }
 
 enum LEARN_STATUS {
-    NEW
-    SHOWN
-    IN_PROGRESS
-    FAMILIAR
-    KNOWN
+  NEW
+  SHOWN
+  IN_PROGRESS
+  FAMILIAR
+  KNOWN
 }
 
 model CardLearnProgress {
-    id String @id @default(uuid())
-    card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
-    cardId String @unique
-    interval Int @default(0)
-    countOfAnswers Int @default(0)
-    countOfRightAnswers Int @default(0)
-    accuracy Int @default(100)
-    step Int @default(1)
-    status LEARN_STATUS @default(NEW)
-    lastRepetitionDate DateTime?
-    nextRepetitionDate DateTime?
+  id                  String       @id @default(uuid())
+  card                Card         @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  cardId              String       @unique
+  views               Int          @default(0)
+  interval            Int          @default(0)
+  countOfAnswers      Int          @default(0)
+  countOfRightAnswers Int          @default(0)
+  accuracy            Int          @default(100)
+  step                Int          @default(1)
+  status              LEARN_STATUS @default(NEW)
+  lastRepetitionDate  DateTime?
+  nextRepetitionDate  DateTime?
 }
 
-
 model Module {
-  id        String    @id @default(uuid())
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  label      String
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  label     String
 
-  folderId  String?
-  folder Folder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  folderId String?
+  folder   Folder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
 
   userId String
-  user   User @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
 
   cards Card[]
 
   @@map("modules")
 }
 
-
 model Folder {
-  id   String @default(uuid()) @id
-  label      String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id          String   @id @default(uuid())
+  label       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   description String?
 
   userId String
-  user   User @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
 
   modules Module[]
 
   @@map("folders")
 }
-
-
-
-

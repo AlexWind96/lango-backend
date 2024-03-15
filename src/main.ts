@@ -7,7 +7,9 @@ import { PrismaClientExceptionFilter } from './global/exceptions'
 import * as cookieParser from 'cookie-parser'
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true })
+  const app = await NestFactory.create(AppModule, {
+    cors: process.env.NODE !== 'development',
+  })
   app.setGlobalPrefix('api')
   app.use(cookieParser())
   //ts-ignore

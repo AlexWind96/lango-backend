@@ -62,6 +62,13 @@ export class CardsController {
           createdAt: sort,
         }
       }
+      if (orderBy === 'views') {
+        queryOptions.orderBy = {
+          progress: {
+            views: sort,
+          },
+        }
+      }
     }
     if (filters.step) {
       queryOptions.where = {
@@ -119,6 +126,11 @@ export class CardsController {
   @Patch(':id/right')
   registerRightAnswer(@Param('id') id: string, @GetUser('id') userId: string) {
     return this.cardsService.registerRightAnswer(id, userId)
+  }
+
+  @Patch(':id/viewed')
+  registerView(@Param('id') id: string, @GetUser('id') userId: string) {
+    return this.cardsService.registerView(id, userId)
   }
 
   @Patch(':id/wrong')

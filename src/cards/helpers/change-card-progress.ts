@@ -31,31 +31,31 @@ const getNextTime = (min: number) => {
 const getNextIntervalDate = (interval: number) => {
   switch (interval) {
     case 0: {
-      return getNextTime(2)
+      return getNextTime(5)
     }
     case 1: {
-      return getNextTime(5)
+      return getNextTime(25)
     }
     case 2: {
       return getNextDay(1)
     }
     case 3: {
-      return getNextDay(3)
+      return getNextDay(5)
     }
     case 4: {
-      return getNextDay(6)
+      return getNextDay(10)
     }
     case 5: {
-      return getNextDay(15)
+      return getNextDay(20)
     }
     case 6: {
       return getNextDay(30)
     }
     case 7: {
-      return getNextDay(50)
+      return getNextDay(60)
     }
     default: {
-      return getNextDay(50)
+      return getNextDay(60)
     }
   }
 }
