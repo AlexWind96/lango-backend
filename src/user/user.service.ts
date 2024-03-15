@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common'
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
 import { PrismaService } from '../prisma/prisma.service'
 import { EditUserDto } from './dto/edit-user.dto'
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime'
 
 @Injectable()
 export class UserService {

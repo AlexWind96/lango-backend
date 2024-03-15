@@ -62,6 +62,7 @@ export class ModulesService {
     return modules.map((module) => {
       return {
         ...module,
+        // @ts-ignore
         counts: getCountsByProgress(module.cards),
         cards: undefined,
       }
@@ -80,6 +81,7 @@ export class ModulesService {
       () => this.prisma.module.count({ where }),
       connectionArgs,
     )
+    // @ts-ignore
     return new Page<ModuleEntity>(page)
   }
 

@@ -53,6 +53,7 @@ docker-compose.yml
 .env
 .env.dev
 .env.*
+.yarn
 
 
 #Lock files
