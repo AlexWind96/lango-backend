@@ -1,7 +1,6 @@
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["fullTextSearch"]
-  binaryTargets   = ["native", "rhel-openssl-1.0.x"]
 }
 
 datasource db {
@@ -111,15 +110,19 @@ enum COMPLEXITY {
 }
 
 model CardLearnProgress {
-  id                 String       @id @default(uuid())
-  card               Card         @relation(fields: [cardId], references: [id], onDelete: Cascade)
-  cardId             String       @unique
-  views              Int          @default(0)
-  step               Int          @default(0)
-  status             LEARN_STATUS @default(NEW)
-  complexity         COMPLEXITY   @default(UNKNOWN)
-  lastRepetitionDate DateTime?
-  nextRepetitionDate DateTime?
+  id                  String       @id @default(uuid())
+  card                Card         @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  cardId              String       @unique
+  views               Int          @default(0)
+  interval            Int          @default(0)
+  countOfAnswers      Int          @default(0)
+  countOfRightAnswers Int          @default(0)
+  accuracy            Int          @default(100)
+  step                Int          @default(1)
+  complexity          COMPLEXITY   @default(UNKNOWN)
+  status              LEARN_STATUS @default(NEW)
+  lastRepetitionDate  DateTime?
+  nextRepetitionDate  DateTime?
 }
 
 model Module {
