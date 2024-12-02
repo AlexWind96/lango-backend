@@ -17,6 +17,7 @@ import {
   getNextLearnCard,
 } from './helpers'
 import { ConnectionArgs } from '../page/connection-args.dto'
+import * as moment from 'moment/moment'
 
 @Injectable()
 export class CardsService {
@@ -169,7 +170,13 @@ export class CardsService {
       where: {
         cardId: id,
       },
-      data: changeCardProgressPositive(progress),
+      data: {
+        ...changeCardProgressPositive(progress),
+        lastRepetitionDate: moment().toDate(),
+        views: {
+          increment: 1,
+        },
+      },
     })
   }
 
@@ -182,6 +189,7 @@ export class CardsService {
     if (!progress) {
       throw new NotFoundException(`Card progress is not found`)
     }
+    await this.currentLearnSessionService.incrementCount(userId)
 
     return this.prisma.cardLearnProgress.update({
       where: {
@@ -207,11 +215,42 @@ export class CardsService {
     //Update current learn session
     await this.currentLearnSessionService.incrementCount(userId, false)
     //Update progress
-    return await this.prisma.cardLearnProgress.update({
+    return this.prisma.cardLearnProgress.update({
       where: {
         cardId: id,
       },
-      data: changeCardProgressNegative(progress),
+      data: {
+        ...changeCardProgressNegative(progress),
+        lastRepetitionDate: moment().toDate(),
+        views: {
+          increment: 1,
+        },
+      },
+    })
+  }
+  async registerHardAnswer(id: string, userId: string) {
+    const progress = await this.prisma.cardLearnProgress.findUnique({
+      where: {
+        cardId: id,
+      },
+    })
+    if (!progress) {
+      throw new NotFoundException(`Card progress is not found`)
+    }
+    //Update current learn session
+    await this.currentLearnSessionService.incrementCount(userId, false)
+    //Update progress
+    return this.prisma.cardLearnProgress.update({
+      where: {
+        cardId: id,
+      },
+      data: {
+        ...changeCardProgressNegative(progress),
+        lastRepetitionDate: moment().toDate(),
+        views: {
+          increment: 1,
+        },
+      },
     })
   }
 

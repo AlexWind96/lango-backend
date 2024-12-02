@@ -117,7 +117,7 @@ export class CurrentLearnSessionService {
     })
   }
 
-  async incrementCount(userId: string, isRight: boolean) {
+  async incrementCount(userId: string, isRight?: boolean) {
     const session = await this.prismaService.currentLearnSession.update({
       where: {
         userId,
