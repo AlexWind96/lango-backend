@@ -1,51 +1,68 @@
 import { PrismaClient } from '@prisma/client'
 import { RegisterDto } from '../src/auth/dto'
 import * as argon from 'argon2'
+import * as moment from 'moment'
 
 const prisma = new PrismaClient()
 
 async function main() {
-  const testUserDto: RegisterDto = {
-    name: 'Erik',
-    email: 'test@mail.com',
-    password: '123',
-  }
-  const hash = await argon.hash(testUserDto.password)
-  const newUser = await prisma.user.create({
+  await prisma.cardLearnProgress.updateMany({
     data: {
-      email: testUserDto.email,
-      hash: hash,
-      name: testUserDto.name,
+      step: 3,
+      nextRepetitionDate: moment().subtract(2, 'minutes').toDate(),
+      threshold: 0.6,
+      lastRepetitionDate: moment().subtract(10, 'minutes').toDate(),
+      status: 'IN_PROGRESS',
+      views: 0,
+      consecutiveCorrectAnswers: 0,
+    },
+    where: {
+      card: {
+        moduleId: 'e4ad0332-a3cc-41a3-8d9a-d32f0b55f625',
+      },
     },
   })
-
-  const module = await prisma.module.create({
-    data: {
-      userId: newUser.id,
-      label: 'Module',
-    },
-  })
-
-  seedData.forEach(async (data) => {
-    const card = await prisma.card.create({
-      data: {
-        phraseTranslation: data.phraseTranslation,
-        sentenceTranslation: data.sentenceTranslation,
-        notes: data.notes,
-        sentenceText: data.sentenceText,
-        userId: newUser.id,
-        moduleId: module.id,
-        sentence: {
-          create: data.sentence,
-        },
-      },
-    })
-    await prisma.cardLearnProgress.create({
-      data: {
-        cardId: card.id,
-      },
-    })
-  })
+  // const testUserDto: RegisterDto = {
+  //   name: 'Erik',
+  //   email: 'test@mail.com',
+  //   password: '123',
+  // }
+  // const hash = await argon.hash(testUserDto.password)
+  // const newUser = await prisma.user.create({
+  //   data: {
+  //     email: testUserDto.email,
+  //     hash: hash,
+  //     name: testUserDto.name,
+  //   },
+  // })
+  //
+  // const module = await prisma.module.create({
+  //   data: {
+  //     userId: newUser.id,
+  //     label: 'Module',
+  //   },
+  // })
+  //
+  // seedData.forEach(async (data) => {
+  //   const card = await prisma.card.create({
+  //     data: {
+  //       phraseTranslation: data.phraseTranslation,
+  //       sentenceTranslation: data.sentenceTranslation,
+  //       notes: data.notes,
+  //       sentenceText: data.sentenceText,
+  //       userId: newUser.id,
+  //       moduleId: module.id,
+  //       sentence: {
+  //         create: data.sentence,
+  //       },
+  //     },
+  //   })
+  //   await prisma.cardLearnProgress.create({
+  //     data: {
+  //       cardId: card.id,
+  //     },
+  //   })
+  // })
 
   // const card = await prisma.card.create({
   //   data: {

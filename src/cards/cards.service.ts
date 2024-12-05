@@ -14,6 +14,7 @@ import { CurrentLearnSessionService } from '../current-learn-session/current-lea
 import {
   changeCardProgressNegative,
   changeCardProgressPositive,
+  getLearnCard,
   getNextLearnCard,
 } from './helpers'
 import { ConnectionArgs } from '../page/connection-args.dto'
@@ -170,8 +171,6 @@ export class CardsService {
 
     await this.currentLearnSessionService.incrementCount(userId, true)
 
-    console.log(changeCardProgressPositive(progress, user))
-
     return this.prisma.cardLearnProgress.update({
       where: {
         cardId: id,
@@ -229,6 +228,47 @@ export class CardsService {
   }
 
   async findLearnCard(userId: string): Promise<CardEntity | null> {
+    const currentSession = await this.prisma.currentLearnSession.findUnique({
+      where: {
+        userId,
+      },
+    })
+    if (!currentSession) {
+      throw new NotFoundException(`${this.entityName} is not found`)
+    }
+    //If no modules
+    const modules = currentSession.modules.map((id) => {
+      return {
+        moduleId: id,
+      }
+    })
+    let cards
+    if (modules.length === 0) {
+      cards = await this.prisma.card.findMany({
+        where: {
+          userId,
+        },
+        include: {
+          progress: true,
+          sentence: true,
+        },
+      })
+    } else {
+      cards = await this.prisma.card.findMany({
+        where: {
+          OR: modules,
+        },
+        include: {
+          progress: true,
+          sentence: true,
+        },
+      })
+    }
+
+    return getLearnCard(cards)
+  }
+
+  async findNextLearnCard(userId: string): Promise<CardEntity | null> {
     const currentSession = await this.prisma.currentLearnSession.findUnique({
       where: {
         userId,

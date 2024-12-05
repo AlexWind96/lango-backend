@@ -37,13 +37,24 @@ const getIntervalValues = (cards: CardEntity[]) => {
   })
 }
 
-export const getNextLearnCard = (cards: CardEntity[]): CardEntity | null => {
+export const getLearnCard = (cards: CardEntity[]): CardEntity | null => {
   const expiredCards = getIntervalValues(cards).filter((card) => card.isExpired)
   const sortedExpiredCards = expiredCards.sort(
     (a, b) => a.interval - b.interval,
   )
 
   const card = cards.find((card) => card.id === sortedExpiredCards[0]?.id)
+
+  return card ? card : null
+}
+
+export const getNextLearnCard = (cards: CardEntity[]): CardEntity | null => {
+  const expiredCards = getIntervalValues(cards).filter((card) => card.isExpired)
+  const sortedExpiredCards = expiredCards.sort(
+    (a, b) => a.interval - b.interval,
+  )
+
+  const card = cards.find((card) => card.id === sortedExpiredCards[1]?.id)
 
   return card ? card : null
 }

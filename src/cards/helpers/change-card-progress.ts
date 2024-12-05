@@ -48,7 +48,7 @@ export const changeCardProgressPositive = (
     case 'NEW-0':
       return calculateProgress(
         2,
-        1,
+        3,
         LEARN_STATUS.SHOWN,
         user,
         newThreshold,
@@ -57,7 +57,7 @@ export const changeCardProgressPositive = (
     case 'SHOWN-1':
       return calculateProgress(
         2,
-        2,
+        4,
         LEARN_STATUS.SHOWN,
         user,
         newThreshold,

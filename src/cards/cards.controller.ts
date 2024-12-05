@@ -118,6 +118,11 @@ export class CardsController {
     return this.cardsService.findLearnCard(userId)
   }
 
+  @Get('next-learn-card')
+  findNextLearnCard(@GetUser('id') userId: string) {
+    return this.cardsService.findNextLearnCard(userId)
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string, @GetUser('id') userId: string) {
     return this.cardsService.findOne(id, userId)

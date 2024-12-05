@@ -18,6 +18,7 @@
     "db:test:rm": "docker compose rm dev-db -s -f -v",
     "db:test:up": "docker compose up dev-db -d",
     "db:test:seed": "dotenv -e .env.dev -- npx prisma db seed",
+    "db:reset": "npx prisma db seed",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
@@ -28,7 +29,8 @@
     "start:debug": "nest start --debug --watch"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "ts-node prisma/seed.ts",
+    "reset": "ts-node prisma/reset.ts"
   },
   "dependencies": {
     "@devoxa/prisma-relay-cursor-connection": "^3.1.1",
