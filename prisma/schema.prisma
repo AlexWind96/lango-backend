@@ -25,6 +25,8 @@ model User {
   role     Role    @default(USER)
 
   learnGoal Int @default(50)
+  growthRatio Float @default(0.6)
+  initialMemoryPersistence Float @default(2)
 
   learnSessions  LearnSession[]
   currentSession CurrentLearnSession?
@@ -102,25 +104,16 @@ enum LEARN_STATUS {
   KNOWN
 }
 
-enum COMPLEXITY {
-  UNKNOWN
-  EASY
-  MEDIUM
-  HARD
-}
 
 model CardLearnProgress {
   id                  String       @id @default(uuid())
   card                Card         @relation(fields: [cardId], references: [id], onDelete: Cascade)
   cardId              String       @unique
   views               Int          @default(0)
-  interval            Int          @default(0)
-  countOfAnswers      Int          @default(0)
-  countOfRightAnswers Int          @default(0)
-  accuracy            Int          @default(100)
-  step                Int          @default(1)
-  complexity          COMPLEXITY   @default(UNKNOWN)
+  step                Int          @default(0)
+  consecutiveCorrectAnswers Int    @default(0)
   status              LEARN_STATUS @default(NEW)
+  threshold           Float        @default(0.6)
   lastRepetitionDate  DateTime?
   nextRepetitionDate  DateTime?
 }

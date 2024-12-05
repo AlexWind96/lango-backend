@@ -12,7 +12,7 @@
     "prestart:dev": "npm run db:test:restart",
     "start:dev": "dotenv -e .env.dev -- nest start --watch",
     "migrate:dev": "dotenv -e .env.dev -- npx prisma migrate dev",
-    "db:test:restart": "npm run db:test:rm && npm run db:test:up",
+    "db:test:restart": "npm run db:test:rm && npm run db:test:up && sleep 3 && npm run prisma:test:deploy && npm run db:test:seed",
     "prisma:test:deploy": "dotenv -e .env.dev -- npx prisma migrate deploy",
     "prisma:test:studio": "dotenv -e .env.dev -- npx prisma studio",
     "db:test:rm": "docker compose rm dev-db -s -f -v",

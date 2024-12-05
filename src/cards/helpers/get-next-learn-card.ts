@@ -1,146 +1,49 @@
-import { CurrentLearnSession, LEARN_STATUS } from '@prisma/client'
 import * as moment from 'moment'
 import { CardEntity } from '../entities/card.entity'
 
-const getNotNewCards = (cards: CardEntity[]): CardEntity[] => {
-  return cards.filter((card) => card.progress.status !== LEARN_STATUS.NEW)
-}
-const getNewCards = (cards: CardEntity[]): CardEntity[] => {
-  return cards.filter((card) => card.progress.status === LEARN_STATUS.NEW)
-}
-
-const getExpiredShownCards = (cards: CardEntity[]): CardEntity[] => {
-  return cards
-    .filter((card) => card.progress.status === LEARN_STATUS.SHOWN)
-    .filter((card) => {
-      return card.progress.nextRepetitionDate < moment().toDate()
-    })
+export const getStabilityRatio = (
+  step: number,
+  growthRation: number,
+  initialMemoryPersistence: number,
+): number => {
+  return initialMemoryPersistence * (1 + growthRation) ** step
 }
 
-const getExpiredFamiliarCards = (
-  cards: CardEntity[],
-  learnSessionDate: Date,
-): CardEntity[] => {
-  return cards
-    .filter((card) => card.progress.status === LEARN_STATUS.FAMILIAR)
-    .filter((card) => {
-      if (card.progress.interval > 1) {
-        return moment(learnSessionDate).isSameOrAfter(
-          card.progress.nextRepetitionDate,
-          'day',
-        )
-      } else {
-        return (
-          moment(card.progress.nextRepetitionDate).toDate() < moment().toDate()
-        )
+export const getInterval = (
+  stabilityRation: number,
+  threshold: number,
+): number => {
+  return Math.round(-stabilityRation * Math.log(threshold))
+}
+
+const getIntervalValues = (cards: CardEntity[]) => {
+  const now = moment()
+  return cards.map((card) => {
+    if (card.progress.nextRepetitionDate) {
+      const nextRepetitionDate = moment(card.progress.nextRepetitionDate)
+      return {
+        id: card.id,
+        interval: moment.duration(nextRepetitionDate.diff(now)).asMinutes(),
+        isExpired: card.progress.nextRepetitionDate < now.toDate(),
       }
-    })
-}
-
-const getExpiredInProgressCards = (
-  cards: CardEntity[],
-  learnSessionDate: Date,
-): CardEntity[] => {
-  return cards
-    .filter((card) => card.progress.status === LEARN_STATUS.IN_PROGRESS)
-    .filter((card) => {
-      if (card.progress.interval > 1) {
-        return moment(learnSessionDate).isSameOrAfter(
-          card.progress.nextRepetitionDate,
-          'day',
-        )
-      } else {
-        return (
-          moment(card.progress.nextRepetitionDate).toDate() < moment().toDate()
-        )
+    } else {
+      const nextRepetitionDate = moment(card.createdAt)
+      return {
+        id: card.id,
+        interval: moment.duration(nextRepetitionDate.diff(now)).asMinutes(),
+        isExpired: true,
       }
-    })
-}
-
-const getExpiredKnownCards = (
-  cards: CardEntity[],
-  learnSessionDate: Date,
-): CardEntity[] => {
-  return cards
-    .filter((card) => card.progress.status === LEARN_STATUS.KNOWN)
-    .filter((card) => {
-      if (card.progress.interval > 1) {
-        return moment(learnSessionDate).isSameOrAfter(
-          card.progress.nextRepetitionDate,
-          'day',
-        )
-      } else {
-        return (
-          moment(card.progress.nextRepetitionDate).toDate() < moment().toDate()
-        )
-      }
-    })
-}
-
-const getCardWithMinimalAccuracy = (cards: CardEntity[]): CardEntity | null => {
-  if (cards.length === 0) return null
-  return cards.reduce((acc, current) => {
-    return acc.progress.accuracy < current.progress.accuracy ? acc : current
+    }
   })
 }
 
-const getRandomCardFromArray = <Item>(items: Item[]): Item | null => {
-  if (items.length) {
-    return items[Math.floor(Math.random() * items.length)]
-  } else return null
-}
-
-const getRandom = () => Math.floor(Math.random() * 10)
-
-export const getNextLearnCard = (
-  cards: CardEntity[],
-  learningSessionDate: CurrentLearnSession,
-): CardEntity | null => {
-  const { createdAt: sessionDate } = learningSessionDate
-
-  //1. Get New card with chance 10%
-  const random = getRandom()
-  const newCards = getNewCards(cards)
-  const randomNewCard = getRandomCardFromArray(newCards)
-  if (random === 1 && randomNewCard) {
-    return randomNewCard
-  }
-
-  //2. Get random shown card
-  const notNewCards = getNotNewCards(cards)
-
-  const randomShownCard = getRandomCardFromArray(
-    getExpiredShownCards(notNewCards),
+export const getNextLearnCard = (cards: CardEntity[]): CardEntity | null => {
+  const expiredCards = getIntervalValues(cards).filter((card) => card.isExpired)
+  const sortedExpiredCards = expiredCards.sort(
+    (a, b) => a.interval - b.interval,
   )
 
-  if (randomShownCard) {
-    return randomShownCard
-  }
+  const card = cards.find((card) => card.id === sortedExpiredCards[0]?.id)
 
-  //3. Get familiar card with minimal accuracy
-  const randomFamiliarCard = getCardWithMinimalAccuracy(
-    getExpiredFamiliarCards(notNewCards, sessionDate),
-  )
-
-  if (randomFamiliarCard) {
-    return randomFamiliarCard
-  }
-  //4. Get in progress card with minimal accuracy
-  const randomInProgressCard = getCardWithMinimalAccuracy(
-    getExpiredInProgressCards(notNewCards, sessionDate),
-  )
-
-  if (randomInProgressCard) {
-    return randomInProgressCard
-  }
-  //5. Get known card with minimal accuracy
-  const knownCard = getCardWithMinimalAccuracy(
-    getExpiredKnownCards(notNewCards, sessionDate),
-  )
-  if (knownCard) {
-    return knownCard
-  }
-
-  //6. Get new card
-  return randomNewCard ? randomNewCard : null
+  return card ? card : null
 }

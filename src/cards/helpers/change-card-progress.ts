@@ -1,217 +1,209 @@
 import { CardLearnProgressEntity } from '../entities/card-progress.entity'
-import { LEARN_STATUS } from '@prisma/client'
+import { LEARN_STATUS, User } from '@prisma/client'
 import * as moment from 'moment'
+import { getInterval, getStabilityRatio } from './get-next-learn-card'
 
-const getAccuracy = (
-  cardProgress: CardLearnProgressEntity,
-  isAnswerRight: boolean,
-) => {
-  if (isAnswerRight) {
-    return Math.round(
-      ((cardProgress.countOfRightAnswers + 1) /
-        (cardProgress.countOfAnswers + 1)) *
-        100,
-    )
-  } else {
-    return Math.round(
-      (cardProgress.countOfRightAnswers / (cardProgress.countOfAnswers + 1)) *
-        100,
-    )
+const calculateProgress = (
+  step: number,
+  stepInterval: number,
+  status: LEARN_STATUS,
+  user: User,
+  threshold: number,
+  consecutiveCorrectAnswers?: number,
+): Partial<CardLearnProgressEntity> => {
+  const stabilityRatio = getStabilityRatio(
+    stepInterval,
+    user.growthRatio,
+    user.initialMemoryPersistence,
+  )
+  const interval = getInterval(stabilityRatio, threshold)
+  const nextRepetitionDate = moment()
+    .add(interval, status === LEARN_STATUS.SHOWN ? 'seconds' : 'days')
+    .toDate()
+
+  return {
+    status,
+    step,
+    threshold,
+    lastRepetitionDate: moment().toDate(),
+    nextRepetitionDate,
+    consecutiveCorrectAnswers,
   }
 }
 
-const getNextDay = (days: number) => {
-  return moment().utc().add(days, 'day').startOf('day').toDate()
-}
-
-const getNextTime = (min: number) => {
-  return moment().utc().add(min, 'm').toDate()
-}
-
-const getNextIntervalDate = (interval: number) => {
-  switch (interval) {
-    case 0: {
-      return getNextTime(5)
-    }
-    case 1: {
-      return getNextTime(25)
-    }
-    case 2: {
-      return getNextDay(1)
-    }
-    case 3: {
-      return getNextDay(5)
-    }
-    case 4: {
-      return getNextDay(10)
-    }
-    case 5: {
-      return getNextDay(20)
-    }
-    case 6: {
-      return getNextDay(30)
-    }
-    case 7: {
-      return getNextDay(60)
-    }
-    default: {
-      return getNextDay(60)
-    }
-  }
-}
-
-const isFamiliar = (cardProgress: CardLearnProgressEntity): boolean => {
-  const nextInterval = cardProgress.interval + 1
-  const nextAccuracy = getAccuracy(cardProgress, true)
-  return (nextAccuracy >= 80 && nextInterval >= 4) || nextInterval >= 5
-}
-
-const isInProgress = (cardProgress: CardLearnProgressEntity): boolean => {
-  const nextInterval = cardProgress.interval + 1
-  const nextAccuracy = getAccuracy(cardProgress, true)
-  return (nextAccuracy >= 60 && nextInterval >= 2) || nextInterval >= 3
+const getDecreasedThreshold = (threshold: number): number => {
+  const nextThreshold = Math.round((threshold - 0.1) * 10) / 10
+  return nextThreshold > 0.3 ? nextThreshold : 0.4
 }
 
 export const changeCardProgressPositive = (
   cardProgress: CardLearnProgressEntity,
+  user: User,
 ): Partial<CardLearnProgressEntity> => {
-  switch (cardProgress.status) {
-    case LEARN_STATUS.NEW: {
-      return {
-        status: LEARN_STATUS.SHOWN,
-        interval: 0,
-        step: 2,
-        accuracy: 100,
-        countOfRightAnswers: 1,
-        countOfAnswers: 1,
-        lastRepetitionDate: moment().toDate(),
-        nextRepetitionDate: getNextIntervalDate(0),
-      }
-    }
-    case LEARN_STATUS.SHOWN: {
-      return {
-        status: isInProgress(cardProgress)
-          ? LEARN_STATUS.IN_PROGRESS
-          : LEARN_STATUS.SHOWN,
-        interval: cardProgress.interval + 1,
-        step: isInProgress(cardProgress) ? 3 : 2,
-        accuracy: getAccuracy(cardProgress, true),
-        countOfRightAnswers: cardProgress.countOfRightAnswers + 1,
-        countOfAnswers: cardProgress.countOfAnswers + 1,
-        lastRepetitionDate: moment().toDate(),
-        nextRepetitionDate: getNextIntervalDate(cardProgress.interval + 1),
-      }
-    }
-    case LEARN_STATUS.IN_PROGRESS: {
-      return {
-        status: isFamiliar(cardProgress)
-          ? LEARN_STATUS.FAMILIAR
-          : LEARN_STATUS.IN_PROGRESS,
-        interval: cardProgress.interval + 1,
-        step: isFamiliar(cardProgress) ? 4 : 3,
-        accuracy: getAccuracy(cardProgress, true),
-        countOfRightAnswers: cardProgress.countOfRightAnswers + 1,
-        countOfAnswers: cardProgress.countOfAnswers + 1,
-        lastRepetitionDate: moment().toDate(),
-        nextRepetitionDate: getNextIntervalDate(cardProgress.interval + 1),
-      }
-    }
-    case LEARN_STATUS.FAMILIAR: {
-      return {
-        status: LEARN_STATUS.KNOWN,
-        interval: cardProgress.interval + 1,
-        step: 5,
-        accuracy: getAccuracy(cardProgress, true),
-        countOfRightAnswers: cardProgress.countOfRightAnswers + 1,
-        countOfAnswers: cardProgress.countOfAnswers + 1,
-        lastRepetitionDate: moment().toDate(),
-        nextRepetitionDate: getNextIntervalDate(cardProgress.interval + 1),
-      }
-    }
-    case LEARN_STATUS.KNOWN: {
-      return {
-        status: LEARN_STATUS.KNOWN,
-        interval: cardProgress.interval + 1,
-        step: 5,
-        accuracy: getAccuracy(cardProgress, true),
-        countOfRightAnswers: cardProgress.countOfRightAnswers + 1,
-        countOfAnswers: cardProgress.countOfAnswers + 1,
-        lastRepetitionDate: moment().toDate(),
-        nextRepetitionDate: getNextIntervalDate(cardProgress.interval + 1),
-      }
-    }
+  const { status, step, threshold, consecutiveCorrectAnswers } = cardProgress
+  const newThreshold =
+    consecutiveCorrectAnswers > 1 ? getDecreasedThreshold(threshold) : threshold
+  const stepAlias = status !== 'KNOWN' ? `${status}-${step}` : 'KNOWN'
+  switch (stepAlias) {
+    case 'NEW-0':
+      return calculateProgress(
+        2,
+        1,
+        LEARN_STATUS.SHOWN,
+        user,
+        newThreshold,
+        cardProgress.consecutiveCorrectAnswers,
+      )
+    case 'SHOWN-1':
+      return calculateProgress(
+        2,
+        2,
+        LEARN_STATUS.SHOWN,
+        user,
+        newThreshold,
+        cardProgress.consecutiveCorrectAnswers,
+      )
+    case 'SHOWN-2':
+      return calculateProgress(
+        3,
+        0,
+        LEARN_STATUS.IN_PROGRESS,
+        user,
+        newThreshold,
+        cardProgress.consecutiveCorrectAnswers,
+      )
+    case 'IN_PROGRESS-3':
+      return calculateProgress(
+        4,
+        1,
+        LEARN_STATUS.IN_PROGRESS,
+        user,
+        newThreshold,
+        cardProgress.consecutiveCorrectAnswers + 1,
+      )
+    case 'IN_PROGRESS-4':
+      return calculateProgress(
+        5,
+        2,
+        LEARN_STATUS.FAMILIAR,
+        user,
+        newThreshold,
+        cardProgress.consecutiveCorrectAnswers + 1,
+      )
+    case 'FAMILIAR-5':
+      return calculateProgress(
+        6,
+        3,
+        LEARN_STATUS.FAMILIAR,
+        user,
+        newThreshold,
+        cardProgress.consecutiveCorrectAnswers + 1,
+      )
+    case 'FAMILIAR-6':
+      return calculateProgress(
+        7,
+        4,
+        LEARN_STATUS.KNOWN,
+        user,
+        newThreshold,
+        cardProgress.consecutiveCorrectAnswers + 1,
+      )
+    case 'KNOWN':
+      return calculateProgress(
+        cardProgress.step + 1,
+        cardProgress.step - 1 > 0 ? cardProgress.step - 1 : 2,
+        LEARN_STATUS.KNOWN,
+        user,
+        newThreshold,
+        cardProgress.consecutiveCorrectAnswers + 1,
+      )
   }
 }
 
-const isShown = ({ accuracy, interval }: CardLearnProgressEntity): boolean => {
-  return (accuracy < 60 && interval === 1) || interval <= 2
+const getIncreasedThreshold = (threshold: number): number => {
+  const nextThreshold = Math.round((threshold + 0.1) * 10) / 10
+  return nextThreshold < 1 ? nextThreshold : 0.9
 }
+
 export const changeCardProgressNegative = (
   cardProgress: CardLearnProgressEntity,
+  user: User,
 ): Partial<CardLearnProgressEntity> => {
-  switch (cardProgress.status) {
-    case LEARN_STATUS.NEW: {
-      //Регистрируем как правильный ответ
-      return {
-        status: LEARN_STATUS.SHOWN,
-        interval: 0,
-        step: 2,
-        accuracy: 100,
-        countOfRightAnswers: 1,
-        countOfAnswers: 1,
-        lastRepetitionDate: moment().toDate(),
-        nextRepetitionDate: getNextIntervalDate(0),
-      }
-    }
-    case LEARN_STATUS.SHOWN: {
-      return {
-        status: LEARN_STATUS.SHOWN,
-        interval: cardProgress.interval - 1,
-        step: 2,
-        accuracy: getAccuracy(cardProgress, false),
-        countOfRightAnswers: cardProgress.countOfRightAnswers,
-        countOfAnswers: cardProgress.countOfAnswers + 1,
-        lastRepetitionDate: moment().toDate(),
-        nextRepetitionDate: getNextIntervalDate(cardProgress.interval - 1),
-      }
-    }
-    case LEARN_STATUS.IN_PROGRESS: {
-      return {
-        status: isShown(cardProgress)
-          ? LEARN_STATUS.SHOWN
-          : LEARN_STATUS.IN_PROGRESS,
-        interval: cardProgress.interval - 1,
-        step: isShown(cardProgress) ? 2 : 3,
-        accuracy: getAccuracy(cardProgress, false),
-        countOfRightAnswers: cardProgress.countOfRightAnswers,
-        countOfAnswers: cardProgress.countOfAnswers + 1,
-        lastRepetitionDate: moment().toDate(),
-        nextRepetitionDate: getNextIntervalDate(cardProgress.interval - 1),
-      }
-    }
-    case LEARN_STATUS.FAMILIAR: {
-      return {
-        status: LEARN_STATUS.IN_PROGRESS,
-        interval: 2,
-        step: 3,
-        accuracy: getAccuracy(cardProgress, false),
-        countOfRightAnswers: cardProgress.countOfRightAnswers,
-        countOfAnswers: cardProgress.countOfAnswers + 1,
-        lastRepetitionDate: moment().toDate(),
-        nextRepetitionDate: getNextIntervalDate(2),
-      }
-    }
-    case LEARN_STATUS.KNOWN: {
-      return {
-        status: LEARN_STATUS.IN_PROGRESS,
-        interval: 2,
-        step: 3,
-        accuracy: getAccuracy(cardProgress, false),
-        countOfRightAnswers: cardProgress.countOfRightAnswers,
-        countOfAnswers: cardProgress.countOfAnswers + 1,
-        lastRepetitionDate: moment().toDate(),
-        nextRepetitionDate: getNextIntervalDate(2),
-      }
-    }
+  const { status, step } = cardProgress
+  const newThreshold = getIncreasedThreshold(cardProgress.threshold)
+  const stepAlias = status !== 'KNOWN' ? `${status}-${step}` : 'KNOWN'
+  switch (stepAlias) {
+    case 'NEW-0':
+      return calculateProgress(
+        1,
+        1,
+        LEARN_STATUS.SHOWN,
+        user,
+        cardProgress.threshold,
+        0,
+      )
+    case 'SHOWN-1':
+      return calculateProgress(
+        2,
+        2,
+        LEARN_STATUS.SHOWN,
+        user,
+        cardProgress.threshold,
+        0,
+      )
+    case 'SHOWN-2':
+      return calculateProgress(
+        2,
+        2,
+        LEARN_STATUS.SHOWN,
+        user,
+        cardProgress.threshold,
+        0,
+      )
+    case 'IN_PROGRESS-3':
+      return calculateProgress(
+        3,
+        0,
+        LEARN_STATUS.IN_PROGRESS,
+        user,
+        newThreshold,
+        0,
+      )
+    case 'IN_PROGRESS-4':
+      return calculateProgress(
+        3,
+        0,
+        LEARN_STATUS.IN_PROGRESS,
+        user,
+        newThreshold,
+        0,
+      )
+    case 'FAMILIAR-5':
+      return calculateProgress(
+        5,
+        2,
+        LEARN_STATUS.FAMILIAR,
+        user,
+        newThreshold,
+        0,
+      )
+    case 'FAMILIAR-6':
+      return calculateProgress(
+        6,
+        2,
+        LEARN_STATUS.FAMILIAR,
+        user,
+        newThreshold,
+        0,
+      )
+    case 'KNOWN':
+      return calculateProgress(
+        cardProgress.step,
+        cardProgress.step - 2 > 0 ? cardProgress.step - 2 : 1,
+        LEARN_STATUS.KNOWN,
+        user,
+        newThreshold,
+        0,
+      )
   }
 }

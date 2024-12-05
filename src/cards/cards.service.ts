@@ -159,17 +159,24 @@ export class CardsService {
         cardId: id,
       },
     })
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    })
     if (!progress) {
       throw new NotFoundException(`Card progress is not found`)
     }
 
     await this.currentLearnSessionService.incrementCount(userId, true)
 
+    console.log(changeCardProgressPositive(progress, user))
+
     return this.prisma.cardLearnProgress.update({
       where: {
         cardId: id,
       },
-      data: changeCardProgressPositive(progress),
+      data: changeCardProgressPositive(progress, user),
     })
   }
 
@@ -201,17 +208,23 @@ export class CardsService {
         cardId: id,
       },
     })
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    })
     if (!progress) {
       throw new NotFoundException(`Card progress is not found`)
     }
     //Update current learn session
     await this.currentLearnSessionService.incrementCount(userId, false)
     //Update progress
+    console.log(changeCardProgressNegative(progress, user))
     return await this.prisma.cardLearnProgress.update({
       where: {
         cardId: id,
       },
-      data: changeCardProgressNegative(progress),
+      data: changeCardProgressNegative(progress, user),
     })
   }
 
@@ -253,6 +266,6 @@ export class CardsService {
       })
     }
 
-    return getNextLearnCard(cards, currentSession)
+    return getNextLearnCard(cards)
   }
 }
