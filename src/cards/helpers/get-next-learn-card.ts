@@ -23,14 +23,18 @@ const getIntervalValues = (cards: CardEntity[]) => {
       const nextRepetitionDate = moment(card.progress.nextRepetitionDate)
       return {
         id: card.id,
-        interval: moment.duration(nextRepetitionDate.diff(now)).asMinutes(),
+        interval: moment
+          .duration(nextRepetitionDate.diff(now))
+          .asMilliseconds(),
         isExpired: card.progress.nextRepetitionDate < now.toDate(),
       }
     } else {
       const nextRepetitionDate = moment(card.createdAt)
       return {
         id: card.id,
-        interval: moment.duration(nextRepetitionDate.diff(now)).asMinutes(),
+        interval: moment
+          .duration(nextRepetitionDate.diff(now))
+          .asMilliseconds(),
         isExpired: true,
       }
     }

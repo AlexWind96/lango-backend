@@ -189,6 +189,15 @@ export class CardsService {
       throw new NotFoundException(`Card progress is not found`)
     }
 
+    await this.prisma.card.update({
+      where: {
+        id,
+      },
+      data: {
+        updatedAt: new Date(),
+      },
+    })
+
     return this.prisma.cardLearnProgress.update({
       where: {
         cardId: id,
@@ -218,7 +227,16 @@ export class CardsService {
     //Update current learn session
     await this.currentLearnSessionService.incrementCount(userId, false)
     //Update progress
-    console.log(changeCardProgressNegative(progress, user))
+
+    await this.prisma.card.update({
+      where: {
+        id,
+      },
+      data: {
+        updatedAt: new Date(),
+      },
+    })
+
     return await this.prisma.cardLearnProgress.update({
       where: {
         cardId: id,
@@ -251,6 +269,7 @@ export class CardsService {
         include: {
           progress: true,
           sentence: true,
+          module: true,
         },
       })
     } else {
@@ -261,6 +280,7 @@ export class CardsService {
         include: {
           progress: true,
           sentence: true,
+          module: true,
         },
       })
     }
@@ -292,6 +312,7 @@ export class CardsService {
         include: {
           progress: true,
           sentence: true,
+          module: true,
         },
       })
     } else {
@@ -302,6 +323,7 @@ export class CardsService {
         include: {
           progress: true,
           sentence: true,
+          module: true,
         },
       })
     }

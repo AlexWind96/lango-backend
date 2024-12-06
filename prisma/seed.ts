@@ -8,17 +8,17 @@ const prisma = new PrismaClient()
 async function main() {
   await prisma.cardLearnProgress.updateMany({
     data: {
-      step: 3,
+      step: 0,
       nextRepetitionDate: moment().subtract(2, 'minutes').toDate(),
       threshold: 0.6,
       lastRepetitionDate: moment().subtract(10, 'minutes').toDate(),
-      status: 'IN_PROGRESS',
+      status: 'NEW',
       views: 0,
       consecutiveCorrectAnswers: 0,
     },
     where: {
       card: {
-        moduleId: 'e4ad0332-a3cc-41a3-8d9a-d32f0b55f625',
+        moduleId: '6e27e2fd-c2fd-4f1a-9e5c-393ed83b2904',
       },
     },
   })
