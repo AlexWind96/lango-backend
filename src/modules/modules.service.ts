@@ -10,14 +10,15 @@ import { findManyCursorConnection } from '@devoxa/prisma-relay-cursor-connection
 import { Page } from '../page/page.dto'
 import { ModuleEntity } from './entities/module.entity'
 import { CreateModuleDto } from './dto/create-module.dto'
-import { getCountsByProgress } from './helpers'
+import { getCountsByProgress, getExpiredCardsCount } from './helpers'
 import { GetModulesDto } from './dto/get-modules.dto'
 
 @Injectable()
 export class ModulesService {
   entityName = 'Module'
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {
+  }
 
   create(
     createModuleDto: CreateModuleDto,
@@ -62,6 +63,10 @@ export class ModulesService {
     return modules.map((module) => {
       return {
         ...module,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        expired: getExpiredCardsCount(module.cards),
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         counts: getCountsByProgress(module.cards),
         cards: undefined,

@@ -101,7 +101,7 @@ async function main() {
   })
 }
 
-manualDBSeed()
+main()
   .then(async () => {
     await prisma.$disconnect()
   })

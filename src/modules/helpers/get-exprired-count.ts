@@ -1,5 +1,5 @@
 import * as moment from 'moment'
-import { CardEntity } from '../entities/card.entity'
+import { CardEntity } from '../../cards/entities/card.entity'
 
 export const getStabilityRatio = (
   step: number,
@@ -16,7 +16,7 @@ export const getInterval = (
   return Math.round(-stabilityRation * Math.log(threshold))
 }
 
-const getIntervalValues = (cards: Partial<CardEntity>[]) => {
+const getIntervalValues = (cards: CardEntity[]) => {
   const now = moment()
   return cards.map((card) => {
     if (card.progress.nextRepetitionDate) {
@@ -41,29 +41,7 @@ const getIntervalValues = (cards: Partial<CardEntity>[]) => {
   })
 }
 
-export const getLearnCard = (cards: CardEntity[]): CardEntity | null => {
-  const expiredCards = getIntervalValues(cards).filter((card) => card.isExpired)
-  const sortedExpiredCards = expiredCards.sort(
-    (a, b) => a.interval - b.interval,
-  )
-
-  const card = cards.find((card) => card.id === sortedExpiredCards[0]?.id)
-
-  return card ? card : null
-}
-
-export const getExpiredCardsCount = (cards: Partial<CardEntity>[]): number => {
+export const getExpiredCardsCount = (cards: CardEntity[]): number => {
   const expiredCards = getIntervalValues(cards).filter((card) => card.isExpired)
   return expiredCards.length
-}
-
-export const getNextLearnCard = (cards: CardEntity[]): CardEntity | null => {
-  const expiredCards = getIntervalValues(cards).filter((card) => card.isExpired)
-  const sortedExpiredCards = expiredCards.sort(
-    (a, b) => a.interval - b.interval,
-  )
-
-  const card = cards.find((card) => card.id === sortedExpiredCards[1]?.id)
-
-  return card ? card : null
 }
