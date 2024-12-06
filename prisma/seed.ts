@@ -5,7 +5,7 @@ import * as moment from 'moment'
 
 const prisma = new PrismaClient()
 
-async function main() {
+async function manualDBSeed() {
   await prisma.cardLearnProgress.updateMany({
     data: {
       step: 0,
@@ -18,87 +18,90 @@ async function main() {
     },
     where: {
       card: {
-        moduleId: '6e27e2fd-c2fd-4f1a-9e5c-393ed83b2904',
+        moduleId: '76f1328a-3284-4698-bb07-d3fee737e394',
       },
     },
   })
-  // const testUserDto: RegisterDto = {
-  //   name: 'Erik',
-  //   email: 'test@mail.com',
-  //   password: '123',
-  // }
-  // const hash = await argon.hash(testUserDto.password)
-  // const newUser = await prisma.user.create({
-  //   data: {
-  //     email: testUserDto.email,
-  //     hash: hash,
-  //     name: testUserDto.name,
-  //   },
-  // })
-  //
-  // const module = await prisma.module.create({
-  //   data: {
-  //     userId: newUser.id,
-  //     label: 'Module',
-  //   },
-  // })
-  //
-  // seedData.forEach(async (data) => {
-  //   const card = await prisma.card.create({
-  //     data: {
-  //       phraseTranslation: data.phraseTranslation,
-  //       sentenceTranslation: data.sentenceTranslation,
-  //       notes: data.notes,
-  //       sentenceText: data.sentenceText,
-  //       userId: newUser.id,
-  //       moduleId: module.id,
-  //       sentence: {
-  //         create: data.sentence,
-  //       },
-  //     },
-  //   })
-  //   await prisma.cardLearnProgress.create({
-  //     data: {
-  //       cardId: card.id,
-  //     },
-  //   })
-  // })
-
-  // const card = await prisma.card.create({
-  //   data: {
-  //     phraseTranslation: 'идет',
-  //     sentenceTranslation: 'Он идет с собакой',
-  //     notes: '<p>gehen, gign, ist gegangen</p>',
-  //     sentenceText: 'Er geht mit einem Hund',
-  //     userId: newUser.id,
-  //     moduleId: module.id,
-  //     sentence: {
-  //       create: [
-  //         { value: 'Er', isPunctuation: false, isStudyPhrase: false },
-  //         {
-  //           value: 'geht',
-  //           isPunctuation: false,
-  //           isStudyPhrase: true,
-  //         },
-  //         { value: 'mit', isPunctuation: false, isStudyPhrase: false },
-  //         {
-  //           value: 'einem',
-  //           isPunctuation: false,
-  //           isStudyPhrase: false,
-  //         },
-  //         { value: 'Hund', isPunctuation: false, isStudyPhrase: false },
-  //       ],
-  //     },
-  //   },
-  // })
-  // await prisma.cardLearnProgress.create({
-  //   data: {
-  //     cardId: card.id,
-  //   },
-  // })
 }
 
-main()
+async function main() {
+  const testUserDto: RegisterDto = {
+    name: 'Erik',
+    email: 'test@mail.com',
+    password: '123',
+  }
+  const hash = await argon.hash(testUserDto.password)
+  const newUser = await prisma.user.create({
+    data: {
+      email: testUserDto.email,
+      hash: hash,
+      name: testUserDto.name,
+    },
+  })
+
+  const module = await prisma.module.create({
+    data: {
+      userId: newUser.id,
+      label: 'Module',
+    },
+  })
+
+  seedData.slice(0, 4).forEach(async (data) => {
+    const card = await prisma.card.create({
+      data: {
+        phraseTranslation: data.phraseTranslation,
+        sentenceTranslation: data.sentenceTranslation,
+        notes: data.notes,
+        sentenceText: data.sentenceText,
+        userId: newUser.id,
+        moduleId: module.id,
+        sentence: {
+          create: data.sentence,
+        },
+      },
+    })
+    await prisma.cardLearnProgress.create({
+      data: {
+        cardId: card.id,
+      },
+    })
+  })
+
+  const card = await prisma.card.create({
+    data: {
+      phraseTranslation: 'идет',
+      sentenceTranslation: 'Он идет с собакой',
+      notes: '<p>gehen, gign, ist gegangen</p>',
+      sentenceText: 'Er geht mit einem Hund',
+      userId: newUser.id,
+      moduleId: module.id,
+      sentence: {
+        create: [
+          { value: 'Er', isPunctuation: false, isStudyPhrase: false },
+          {
+            value: 'geht',
+            isPunctuation: false,
+            isStudyPhrase: true,
+          },
+          { value: 'mit', isPunctuation: false, isStudyPhrase: false },
+          {
+            value: 'einem',
+            isPunctuation: false,
+            isStudyPhrase: false,
+          },
+          { value: 'Hund', isPunctuation: false, isStudyPhrase: false },
+        ],
+      },
+    },
+  })
+  await prisma.cardLearnProgress.create({
+    data: {
+      cardId: card.id,
+    },
+  })
+}
+
+manualDBSeed()
   .then(async () => {
     await prisma.$disconnect()
   })

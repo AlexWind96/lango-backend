@@ -17,9 +17,10 @@ const calculateProgress = (
     user.initialMemoryPersistence,
   )
   const interval = getInterval(stabilityRatio, threshold)
-  const nextRepetitionDate = moment()
-    .add(interval, status === LEARN_STATUS.SHOWN ? 'seconds' : 'days')
-    .toDate()
+  const nextRepetitionDate =
+    status === LEARN_STATUS.SHOWN
+      ? moment().add(interval, 'seconds').toDate()
+      : moment().add(interval, 'days').hours(0).toDate()
 
   return {
     status,
