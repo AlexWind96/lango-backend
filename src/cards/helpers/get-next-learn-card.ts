@@ -26,6 +26,7 @@ const getIntervalValues = (cards: Partial<CardEntity>[]) => {
         interval: moment
           .duration(nextRepetitionDate.diff(now))
           .asMilliseconds(),
+        step: card.progress.step,
         isExpired: card.progress.nextRepetitionDate < now.toDate(),
       }
     } else {
@@ -35,6 +36,7 @@ const getIntervalValues = (cards: Partial<CardEntity>[]) => {
         interval: moment
           .duration(nextRepetitionDate.diff(now))
           .asMilliseconds(),
+        step: card.progress.step,
         isExpired: true,
       }
     }
@@ -43,9 +45,7 @@ const getIntervalValues = (cards: Partial<CardEntity>[]) => {
 
 export const getLearnCard = (cards: CardEntity[]): CardEntity | null => {
   const expiredCards = getIntervalValues(cards).filter((card) => card.isExpired)
-  const sortedExpiredCards = expiredCards.sort(
-    (a, b) => a.interval - b.interval,
-  )
+  const sortedExpiredCards = expiredCards.sort((a, b) => a.step - b.step)
 
   const card = cards.find((card) => card.id === sortedExpiredCards[0]?.id)
 
@@ -59,9 +59,12 @@ export const getExpiredCardsCount = (cards: Partial<CardEntity>[]): number => {
 
 export const getNextLearnCard = (cards: CardEntity[]): CardEntity | null => {
   const expiredCards = getIntervalValues(cards).filter((card) => card.isExpired)
-  const sortedExpiredCards = expiredCards.sort(
-    (a, b) => a.interval - b.interval,
-  )
+  const sortedExpiredCards = expiredCards.sort((a, b) => {
+    if (a.step === b.step) {
+      return b.interval - a.interval
+    }
+    return a.step - b.step
+  })
 
   const card = cards.find((card) => card.id === sortedExpiredCards[1]?.id)
 
